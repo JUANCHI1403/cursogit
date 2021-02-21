@@ -1,0 +1,46 @@
+const express = require("express");
+const app = express();
+const exphbs = require("express-handlebars");
+const expressFileUpload = require("express-fileupload");
+const bodyParser = require("body-parser");
+const fs = require ("fs");
+
+app.listen(3000, () => {
+  console.log("Server On in Port 3000");
+});
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.use(express.static("public"));
+
+app.use(
+  expressFileUpload({
+    limits: { fileSize: 3000000 },
+    abortOnLimit: true,
+    responseOnLimit:
+      "El peso del archivo que intentas subir supera el limite permitido",
+  })
+);
+
+
+app.get("/", (req, res) => {
+  res.send(`
+  <form method="POST" action="" enctype="multipart/form-data">
+  <input type="text" name="nombre" required placeholder="Nombre">
+  <input type="text" name="lugar" required
+  placeholder="Lugar">
+  <input type="text" name="album" required placeholder="Album">
+  <input type="file" name="imagen" required>
+  <button> Upload! </button>
+  </form>
+  `);
+});
+
+app.post("/", (req, res) => {
+  const { imagen } = req.files;
+  const { nombre, lugar, album } = req.body;
+  const name = `${nombre} - ${lugar} (${album})`;
+  imagen.mv(`${__dirname}/imagenes/${name}.jpg`, (err) => {
+    res.send("Archivo cargado con éxito");
+  });
+});
